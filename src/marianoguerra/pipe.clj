@@ -8,7 +8,10 @@
 (def continue? (complement finish?))
 
 (defn- make-result [data type & [metadata]]
-  (with-meta (->Result type data) metadata))
+  (let [result (->Result type data)]
+    (if metadata
+      (with-meta result metadata)
+      result)))
 
 (defn- get-data [result]
   (if (instance? Result result)
@@ -25,7 +28,8 @@
   (if (seq funs)
     (let [result ((first funs) data)
           new-meta (merge (meta data) (meta result))
-          new-data (with-meta (get-data result) new-meta)]
+          result-data (get-data result)
+          new-data (if new-meta (with-meta result-data new-meta) result-data)]
       (if (stop? result)
         new-data
         (recur new-data stop? (rest funs))))
