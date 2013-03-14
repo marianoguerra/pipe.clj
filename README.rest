@@ -1,0 +1,158 @@
+pipe - build abstractions by composing small functions
+======================================================
+
+you receive an HTTP request and have to do the following work:
+
+* check the path and method, find the handler and call it
+
+  + if no handler is found fail with not found error
+
+* check that user is authenticated
+  
+  + if not, fail with unauthorized error
+
+* check that user has permissions to make this request *or* is admin
+
+  + if not, fail with unauthorized error
+
+* check if the content type is json
+
+  + if not, fail with invalid content type error
+
+* deserealize the json body
+
+  + if fails, fail with bad request error
+
+* check object against a schema
+
+  + if fails, fail with bad request error
+
+* check that the user can make the request according to some values of the object
+
+  + if not, fail with bad request error
+
+* make the actual action you wanted to do and return the result
+
+  + if it fails for some reason, return an error
+
+on the way out you may have to:
+
+* map the result to a status response
+
+* serialize the result into json
+
+* set some extra headers
+
+wouldn't it be nice that each step is done by a single function that doesn't
+know about the rest and can signal to continue with the next step or finish
+with a result inmediatly?
+
+wouldn't it be nice for the parts that don't depend on HTTP to not have to know
+about requests and responses, but at the same time pass information between steps
+as metadata in case it's required for later steps?
+
+well, pipe is for that kind of work, not just HTTP related, but any kind of
+workflow that requires multiple steps that may continue or finish, avoid each
+step to know about all the context information if it doesn't have to and provide
+utilities to compose them to build larger building blocks.
+
+how
+---
+
+there are 6 main functions in the library:
+
+* (finish value [metadata])
+
+  + signal that the pipeline should finish inmediatly with value, optionally
+    attach metadata to value
+
+  + metadata returned by finish is merged with the current metadata on value
+
+* (continue value [metadata])
+
+  + signal that the pipeline should continue with the next step passing value to it,
+    optionally attach metadata to value
+
+  + metadata returned by continue is merged with the current metadata on value
+
+* (pipe value f1 f2 f3 ... fN)
+
+  + pipes value to f1, if it returns a **finish** value, return the value
+    inmediatly otherwise call f2 with the result of f1 until all functions are
+    called in which case return the last result or until one of the functions
+    returns a **finish** value
+
+  + pipe works like a short circuit *and* 
+
+  + useful to apply check or transformations and return as soon as the first fails
+
+* (or-pipe value f1 f2 f3 ... fN)
+
+  + do the reverse of pipe, keep passing value to functions until one returns
+    a **continue** value
+
+  + or-pipe works like a short circuit *or*
+
+  + useful to check that at least one check passes
+
+* (compose f1 ... fN)
+
+  + return a function that can be used in **pipe** and **or-pipe** that
+    when called with value does (pipe value f1 ... fN)
+
+  + useful to compose blocks into higher level blocks and to have one step
+    that does pipe inside a or-pipe
+
+* (or-compose f1 ... fN)
+
+  + return a function that can be used in **pipe** and **or-pipe** that
+    when called with value does (or-pipe value f1 ... fN)
+
+  + useful to compose blocks into higher level blocks and to have one step
+    that does or-pipe inside a pipe
+
+example
+-------
+
+::
+
+        (defn is-admin [{:keys [username] :as value}]
+          (if (= username "admin")
+            (continue value)
+            (finish {:reason :not-admin :value value} {:error true})))
+
+        (defn has-role [role]
+          (fn [{:keys [roles] :as value}]
+            (if (contains? (set roles) role)
+              (continue value)
+              (finish {:reason :no-valid-role :expected role :value value} {:error true}))))
+
+        (defn is-over-age [min-age]
+          (fn [{:keys [age] :as value}]
+            (if (>= age min-age)
+              (continue value)
+              (finish {:reason :no-valid-age :expected min-age :value value} {:error true}))))
+
+        (def has-admin-permission (or-compose (has-role :admin) is-admin))
+
+        (is (= (:reason (pipe user (is-over-age 11) has-admin-permission))
+             :no-valid-age))
+
+        (is (= (:reason (pipe user (is-over-age 10) has-admin-permission))
+             :not-admin))
+
+        (is (= (pipe admin (is-over-age 10) has-admin-permission))
+             admin)
+
+        (is (= (pipe super-user (is-over-age 10) has-admin-permission))
+             super-user)))
+
+who
+---
+
+marianoguerra
+
+license
+-------
+
+Eclipse
