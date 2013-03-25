@@ -41,6 +41,14 @@
   (testing "finish?"
     (is (finish? (finish 1)))
     (is (not (finish? (continue 1)))))
+
+  (testing "error"
+    (is (:error (meta (error {}))) true)
+    (is (= (:error (meta (finish {}))) nil)))
+
+  (testing "error?"
+    (is (error? (error {})))
+    (is (not (error? (finish {})))))
   
   (testing "piping data to empty pipe returns value"
     (is (= (pipe {:value 42}) {:value 42})))

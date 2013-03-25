@@ -24,6 +24,15 @@
 (defn finish [data & [metadata]]
   (make-result data :finish metadata))
 
+(defn error [data & [metadata]]
+  (finish data (merge metadata {:error true})))
+
+(defn make-error [reason type]
+  (error {:reason reason :type type}))
+
+(defn error? [value]
+  (:error (meta value)))
+
 (defn- do-pipe [data stop? funs]
   (if (seq funs)
     (let [result ((first funs) data)
