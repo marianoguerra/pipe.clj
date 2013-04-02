@@ -35,16 +35,12 @@
 
 (deftest pipe-test
   (testing "continue?"
-    (is (continue? (continue 1)))
-    (is (not (continue? (finish 1)))))
+    (is (continue? (continue {:value 1})))
+    (is (not (continue? (finish {:value 1})))))
 
   (testing "finish?"
-    (is (finish? (finish 1)))
-    (is (not (finish? (continue 1)))))
-
-  (testing "error"
-    (is (:error (meta (get-data (error {})))) true)
-    (is (= (:error (meta (get-data (finish {})))) nil)))
+    (is (finish? (finish {:value 1})))
+    (is (not (finish? (continue {:value 1})))))
 
   (testing "error?"
     (is (error? (error {})))

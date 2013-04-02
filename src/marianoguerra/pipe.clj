@@ -1,47 +1,35 @@
 (ns marianoguerra.pipe)
 
-(defrecord Result [type data])
+(defn finish? [value]
+  (true? (::finish (meta value))))
 
-(defn finish? [arg]
-  (= (:type arg) :finish))
+(defn error? [value]
+  (true? (::error (meta value))))
 
 (def continue? (complement finish?))
 
-(defn- make-result [data type & [metadata]]
-  (let [new-data (if metadata
-                   (with-meta data metadata)
-                   data)
-        result (->Result type new-data)]
-    result))
-
-(defn get-data [result]
-  (if (instance? Result result)
-    (:data result)
-    result))
+(defn finish [data & [metadata]]
+  (with-meta data (merge metadata {::finish true})))
 
 (defn continue [data & [metadata]]
-  (make-result data :continue metadata))
-
-(defn finish [data & [metadata]]
-  (make-result data :finish metadata))
+  (with-meta data (merge (meta data) metadata)))
 
 (defn error [data & [metadata]]
-  (finish data (merge metadata {:error true})))
+  (finish data (merge metadata {::error true})))
 
 (defn make-error [reason type]
   (error {:reason reason :type type}))
 
-(defn error? [value]
-  (:error (meta (get-data value))))
+(defn- clear-pipe-meta [value]
+  (with-meta value (dissoc (meta value) ::finish ::error)))
 
 (defn- do-pipe [data stop? funs]
   (if (seq funs)
     (let [result ((first funs) data)
-          new-meta (merge (meta data) (meta (get-data result)))
-          result-data (get-data result)
-          new-data (if new-meta (with-meta result-data new-meta) result-data)]
+          new-meta (merge (meta data) (meta result))
+          new-data (with-meta result new-meta)]
       (if (stop? result)
-        new-data
+        (clear-pipe-meta new-data)
         (recur new-data stop? (rest funs))))
 
     data))
