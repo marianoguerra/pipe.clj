@@ -1,4 +1,4 @@
-(defproject org.marianoguerra/pipe "0.1.2"
+(defproject org.marianoguerra/pipe "0.1.3-SNAPSHOT"
   :description "library to build abstraction by composing small functions"
   :url "http://github.com/marianoguerra/pipe"
   :license {:name "Eclipse Public License"
