@@ -2,8 +2,8 @@
 
 (defrecord Result [type data])
 
-(defn finish? [{type :type}]
-  (= type :finish))
+(defn finish? [arg]
+  (= (:type arg) :finish))
 
 (def continue? (complement finish?))
 
