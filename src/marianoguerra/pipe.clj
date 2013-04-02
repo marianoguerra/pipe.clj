@@ -14,7 +14,7 @@
         result (->Result type new-data)]
     result))
 
-(defn- get-data [result]
+(defn get-data [result]
   (if (instance? Result result)
     (:data result)
     result))
