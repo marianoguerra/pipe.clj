@@ -8,10 +8,11 @@
 (def continue? (complement finish?))
 
 (defn- make-result [data type & [metadata]]
-  (let [result (->Result type data)]
-    (if metadata
-      (with-meta result metadata)
-      result)))
+  (let [new-data (if metadata
+                   (with-meta data metadata)
+                   data)
+        result (->Result type new-data)]
+    result))
 
 (defn- get-data [result]
   (if (instance? Result result)
@@ -31,12 +32,12 @@
   (error {:reason reason :type type}))
 
 (defn error? [value]
-  (:error (meta value)))
+  (:error (meta (get-data value))))
 
 (defn- do-pipe [data stop? funs]
   (if (seq funs)
     (let [result ((first funs) data)
-          new-meta (merge (meta data) (meta result))
+          new-meta (merge (meta data) (meta (get-data result)))
           result-data (get-data result)
           new-data (if new-meta (with-meta result-data new-meta) result-data)]
       (if (stop? result)

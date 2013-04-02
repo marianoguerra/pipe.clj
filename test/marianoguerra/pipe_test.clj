@@ -43,8 +43,8 @@
     (is (not (finish? (continue 1)))))
 
   (testing "error"
-    (is (:error (meta (error {}))) true)
-    (is (= (:error (meta (finish {}))) nil)))
+    (is (:error (meta (get-data (error {})))) true)
+    (is (= (:error (meta (get-data (finish {})))) nil)))
 
   (testing "error?"
     (is (error? (error {})))
