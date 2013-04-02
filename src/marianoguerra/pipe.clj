@@ -20,8 +20,14 @@
 (defn make-error [reason type]
   (error {:reason reason :type type}))
 
+(defn- clear-meta-key [value key]
+  (with-meta value (dissoc (meta value) key)))
+
+(defn- clear-error [value]
+  (clear-meta-key value ::error))
+
 (defn- clear-pipe-meta [value]
-  (with-meta value (dissoc (meta value) ::finish ::error)))
+  (clear-meta-key value ::finish))
 
 (defn- do-pipe [data stop? funs]
   (if (seq funs)
@@ -35,10 +41,10 @@
     data))
 
 (defn pipe [data & funs]
-  (do-pipe data finish? funs))
+  (do-pipe (clear-error data) finish? funs))
 
 (defn or-pipe [data & funs]
-  (do-pipe data continue? funs))
+  (do-pipe (clear-error data) continue? funs))
 
 (defn compose [& funs]
   (fn [data]
