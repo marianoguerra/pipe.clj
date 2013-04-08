@@ -9,7 +9,7 @@
 (def continue? (complement finish?))
 
 (defn finish [data & [metadata]]
-  (with-meta data (merge metadata {::finish true})))
+  (with-meta data (merge (meta data) metadata {::finish true})))
 
 (defn continue [data & [metadata]]
   (with-meta data (merge (meta data) metadata)))

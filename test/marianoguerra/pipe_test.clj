@@ -64,8 +64,10 @@
     (is (= (meta (pipe {:value 42}
                        #(continue % {:count 1})
                        pass
-                       #(continue % {:name :bob})))
-           {:count 1 :name :bob}))
+                       #(continue % {:name :bob})
+                       #(error % {:type :error-type})
+                       #(finish % {:this-should-not-go 42})))
+           {:count 1 :name :bob :marianoguerra.pipe/error true :type :error-type}))
     (is (= (meta (pipe {:value 42}
                        #(continue % {:count 1})
                        #(continue % {:count 3 :age 27})
