@@ -23,7 +23,7 @@
 (defn- clear-meta-key [value key]
   (with-meta value (dissoc (meta value) key)))
 
-(defn- clear-error [value]
+(defn clear-error [value]
   (clear-meta-key value ::error))
 
 (defn- clear-pipe-meta [value]
@@ -41,10 +41,10 @@
     data))
 
 (defn pipe [data & funs]
-  (do-pipe (clear-error data) finish? funs))
+  (do-pipe data finish? funs))
 
 (defn or-pipe [data & funs]
-  (do-pipe (clear-error data) continue? funs))
+  (do-pipe data continue? funs))
 
 (defn compose [& funs]
   (fn [data]
