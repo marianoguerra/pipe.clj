@@ -6,6 +6,7 @@
 (defn error? [value]
   (true? (::error (meta value))))
 
+(def ok? (complement error?))
 (def continue? (complement finish?))
 
 (defn finish [data & [metadata]]
