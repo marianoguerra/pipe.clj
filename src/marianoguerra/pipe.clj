@@ -30,14 +30,16 @@
 (defn- clear-pipe-meta [value]
   (clear-meta-key value ::finish))
 
-(defn- do-pipe [data stop? funs]
+(defn- do-pipe [data stop? funs & keep-meta]
   (if (seq funs)
     (let [result ((first funs) data)
           new-meta (merge (meta data) (meta result))
           new-data (with-meta result new-meta)]
       (if (stop? result)
-        (clear-pipe-meta new-data)
-        (recur new-data stop? (rest funs))))
+        (if keep-meta
+          new-data
+          (clear-pipe-meta new-data))
+        (recur new-data stop? (rest funs) keep-meta)))
 
     data))
 
@@ -49,8 +51,8 @@
 
 (defn compose [& funs]
   (fn [data]
-    (apply pipe data funs)))
+    (do-pipe data finish? funs true)))
 
 (defn or-compose [& funs]
   (fn [data]
-    (apply or-pipe data funs)))
+    (do-pipe data continue? funs)))

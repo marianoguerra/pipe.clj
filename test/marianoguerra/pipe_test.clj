@@ -91,6 +91,15 @@
     (is (= result-fail-last {:value 43}))
     (is (= result-fail-first {:value 42}))))
 
+  (testing "compose inside a pipe keeps metadata for parent pipe"
+    (let [fail-first (compose #(error % {:type :fail})
+                              plus-one)
+          value {:value 42}
+          result (pipe value fail-first plus-one)]
+      (is (error? result))
+      (is (= result {:value 42}))))
+
+
   (testing "or-pipe does the reverse of pipe"
     (is (= (or-pipe {:value 42} finish-value finish-value plus-one twice)
            {:value 43})))
