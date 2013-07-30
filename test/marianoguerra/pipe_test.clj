@@ -78,6 +78,19 @@
     (is (= (pipe {:value 42} (compose plus-one plus-one twice)) {:value 88}))
     (is (= (pipe {:value 42} (compose plus-one plus-one) twice) {:value 88})))
 
+  (testing "composed ops short circuit on error"
+    (let [fail-last (compose plus-one
+                             #(error % {:type :fail}))
+          fail-first (compose #(error % {:type :fail})
+                              plus-one)
+          value {:value 42}
+          result-fail-last (pipe value fail-last)
+          result-fail-first (pipe value fail-first)]
+    (is (error? result-fail-last))
+    (is (error? result-fail-first))
+    (is (= result-fail-last {:value 43}))
+    (is (= result-fail-first {:value 42}))))
+
   (testing "or-pipe does the reverse of pipe"
     (is (= (or-pipe {:value 42} finish-value finish-value plus-one twice)
            {:value 43})))
