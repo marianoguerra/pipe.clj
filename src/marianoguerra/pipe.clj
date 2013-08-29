@@ -10,10 +10,10 @@
 (def continue? (complement finish?))
 
 (defn finish [data & [metadata]]
-  (with-meta data (merge (meta data) metadata {::finish true})))
+  (vary-meta data merge (assoc metadata ::finish true)))
 
 (defn continue [data & [metadata]]
-  (with-meta data (merge (meta data) metadata)))
+  (vary-meta data merge metadata))
 
 (defn error [data & [metadata]]
   (finish data (merge metadata {::error true})))
@@ -22,7 +22,7 @@
   (error {:reason reason :type type}))
 
 (defn- clear-meta-key [value key]
-  (with-meta value (dissoc (meta value) key)))
+  (vary-meta value dissoc key))
 
 (defn clear-error [value]
   (clear-meta-key value ::error))
@@ -33,8 +33,7 @@
 (defn- do-pipe [data stop? funs & keep-meta]
   (if (seq funs)
     (let [result ((first funs) data)
-          new-meta (merge (meta data) (meta result))
-          new-data (with-meta result new-meta)]
+          new-data (with-meta result (merge (meta data) (meta result)))]
       (if (stop? result)
         (if keep-meta
           new-data
