@@ -2,6 +2,9 @@
   (:use clojure.test
         marianoguerra.pipe))
 
+(defn return-nil [_]
+  nil)
+
 (defn plus-one [{value :value}]
   {:value (+ value 1)})
 
@@ -103,6 +106,9 @@
   (testing "or-pipe does the reverse of pipe"
     (is (= (or-pipe {:value 42} finish-value finish-value plus-one twice)
            {:value 43})))
+
+  (testing "function returning nil doesn't fail"
+    (is (nil? (pipe {:value 42} return-nil))))
 
   (testing "complex example"
     (let [user {:username "bob" :age 10 :roles #{:user}}

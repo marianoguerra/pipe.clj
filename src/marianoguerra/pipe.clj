@@ -33,7 +33,9 @@
 (defn- do-pipe [data stop? funs & keep-meta]
   (if (seq funs)
     (let [result ((first funs) data)
-          new-data (with-meta result (merge (meta data) (meta result)))]
+          new-data (if (nil? result)
+                     result
+                     (with-meta result (merge (meta data) (meta result))))]
       (if (stop? result)
         (if keep-meta
           new-data
